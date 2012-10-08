@@ -12,7 +12,8 @@
 ;; Add in your own as you wish:
 (defvar my-packages '(starter-kit starter-kit-lisp starter-kit-bindings
                                   starter-kit-js starter-kit-ruby
-                                  scala-mode tabbar)
+                                  scala-mode tabbar ipython anything-ipython
+                                  python-mode)
   
   "A list of packages to ensure are installed at launch.")
 
@@ -52,7 +53,7 @@
 (setq visible-bell nil)
 
 ;; disable highlighting current line
-(remove-hook 'coding-hook 'turn-on-hl-line-mode)
+(remove-hook 'prog-mode-hook 'esk-turn-on-hl-line-mode)
 
 ;; additional extensions for speedbar to show
 (require 'speedbar)
@@ -149,6 +150,8 @@ That is, a string used to represent it on the tab bar."
 ;;(require 'distel)
 ;;(distel-setup)
 
+;; === erlang
+
 ;;(require 'erlang-flymake)
 
 (defun my-erlang-mode-hook ()
@@ -167,6 +170,8 @@ That is, a string used to represent it on the tab bar."
 (setq browse-url-browser-function 'browse-url-generic
       browse-url-generic-program "google-chrome")
 
+;; === haskell
+
 (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
 
@@ -178,3 +183,18 @@ That is, a string used to represent it on the tab bar."
 (unless (string-equal "root" (getenv "USER"))
   (require 'server)
   (server-start))
+
+;; === python
+(add-hook 'python-mode-hook (lambda () (flymake-mode)))
+
+(when (load "flymake" t)
+      (defun flymake-pylint-init ()
+        (let* ((temp-file (flymake-init-create-temp-buffer-copy
+                           'flymake-create-temp-inplace))
+           (local-file (file-relative-name
+                        temp-file
+                        (file-name-directory buffer-file-name))))
+          (list "epylint" (list local-file))))
+    
+      (add-to-list 'flymake-allowed-file-name-masks
+               '("\\.py\\'" flymake-pylint-init)))
