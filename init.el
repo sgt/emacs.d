@@ -1,4 +1,5 @@
 (require 'cl)
+(require 'hippie-exp)
 
 ;; packages and starter kit
 (require 'package)
@@ -13,7 +14,7 @@
 (defvar my-packages '(starter-kit starter-kit-lisp starter-kit-bindings
                                   starter-kit-js starter-kit-ruby
                                   scala-mode tabbar ipython anything-ipython
-                                  python-mode)
+                                  python-mode clojure-mode slime nrepl)
   
   "A list of packages to ensure are installed at launch.")
 
@@ -23,7 +24,7 @@
 
 ;; my own preferences
 
-;;(require 'color-theme-github)
+(require 'github-theme)
 (menu-bar-mode)
 
 ;; Key bindings
@@ -95,7 +96,15 @@
 ;; Change padding of the tabs
 ;; we also need to set separator to avoid overlapping tabs by highlighted tabs
 (custom-set-variables
- '(tabbar-separator (quote (0.5))))
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(blink-cursor-mode nil)
+ '(show-paren-mode t)
+ '(tabbar-separator (quote (0.5)))
+ '(tool-bar-mode nil)
+ '(virtualenv-root "~/tmp/virtualenv/"))
 ;; adding spaces
 (defun tabbar-buffer-tab-label (tab)
   "Return a label for TAB.
@@ -143,16 +152,26 @@ That is, a string used to represent it on the tab bar."
 
 (add-hook 'html-mode-hook 'turn-off-auto-fill)
 
-;;(setq erlang-root-dir "/opt/erlang/R15B")
-;;(setq erlang-man-root-dir (concat erlang-root-dir "/man"))
-;;(add-to-list 'exec-path (concat erlang-root-dir "/bin"))
-;;(add-to-list 'load-path (concat dotfiles-dir "/vendor/distel/elisp"))
-;;(require 'distel)
-;;(distel-setup)
-
 ;; === erlang
 
-;;(require 'erlang-flymake)
+(setq erlang-root-dir "/usr/lib/erlang")
+;;(setq erlang-man-root-dir (concat erlang-root-dir "/man"))
+;;(add-to-list 'exec-path (concat erlang-root-dir "/bin"))
+(add-to-list 'load-path "/usr/lib/erlang/lib/tools-2.6.8/emacs")
+(require 'erlang-start)
+(add-to-list 'load-path "~/.emacs.d/vendor/distel/elisp")
+(require 'distel)
+(distel-setup)
+
+(require 'flymake)
+(defun flymake-erlang-init ()
+  (let* ((temp-file (flymake-init-create-temp-buffer-copy
+		     'flymake-create-temp-inplace))
+	 (local-file (file-relative-name temp-file
+		(file-name-directory buffer-file-name))))
+    (list "~/.emacs.d/erlang_flymake" (list local-file))))
+
+(add-to-list 'flymake-allowed-file-name-masks '("\\.erl\\'" flymake-erlang-init))
 
 (defun my-erlang-mode-hook ()
   ;; when starting an Erlang shell in Emacs, default in the node name
@@ -160,7 +179,9 @@ That is, a string used to represent it on the tab bar."
   ;; add Erlang functions to an imenu menu
   (imenu-add-to-menubar "imenu")
   ;; customize keys
-  (local-set-key [return] 'newline-and-indent))
+  (local-set-key [return] 'newline-and-indent)
+
+  (flymake-mode 1))
 
 (add-hook 'erlang-mode-hook 'my-erlang-mode-hook)
 
@@ -198,3 +219,9 @@ That is, a string used to represent it on the tab bar."
     
       (add-to-list 'flymake-allowed-file-name-masks
                '("\\.py\\'" flymake-pylint-init)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:family "Ubuntu Mono" :foundry "unknown" :slant normal :weight normal :height 113 :width normal)))))
