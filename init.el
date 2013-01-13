@@ -14,7 +14,12 @@
 (defvar my-packages '(starter-kit starter-kit-lisp starter-kit-bindings
                                   starter-kit-js starter-kit-ruby
                                   scala-mode tabbar ipython anything-ipython
-                                  python-mode clojure-mode slime nrepl)
+                                  python-mode clojure-mode clojure-test-mode
+                                  slime nrepl
+                                  color-theme
+                                  haskell-mode ghc
+                                  auto-complete ac-nrepl rainbow-delimiters
+                                  slamhound)
   
   "A list of packages to ensure are installed at launch.")
 
@@ -24,11 +29,12 @@
 
 ;; my own preferences
 
-(require 'github-theme)
+;(require 'solarized-light-theme)
 (menu-bar-mode)
 
 ;; Key bindings
 (global-set-key (kbd "C-x m") 'shell)
+(global-set-key (kbd "C-s-SPC") 'complete-symbol)
 
 ;; Russian key modifiers
 (loop
@@ -101,6 +107,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(blink-cursor-mode nil)
+ '(org-agenda-files (quote ("~/Dropbox/notes/comics.org")))
  '(show-paren-mode t)
  '(tabbar-separator (quote (0.5)))
  '(tool-bar-mode nil)
@@ -125,6 +132,15 @@ That is, a string used to represent it on the tab bar."
 
 (require 'scala-mode-auto)
 
+;;----------------------------------------------------------------------------
+;; Handier way to add modes to auto-mode-alist
+;;----------------------------------------------------------------------------
+
+(defun add-auto-mode (mode &rest patterns)
+  "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
+  (dolist (pattern patterns)
+    (add-to-list 'auto-mode-alist (cons pattern mode))))
+
 ;;(load (concat dotfiles-dir "vendor/jinja2-mode/jinja2-mode.el"))
 ;;(require 'jinja2-mode)
 
@@ -136,11 +152,15 @@ That is, a string used to represent it on the tab bar."
 (setq auto-save-default nil)
 (setq make-backup-files nil)
 
+(setq require-final-newline t)
+
 (setq c-basic-offset 2)
 (setq tab-width 2)
 
 (set-language-environment "UTF-8")
 (setq slime-net-coding-system 'utf-8-unix)
+
+;; === clojure
 
 ;; indent midje facts properly
 (eval-after-load 'clojure-mode
@@ -149,6 +169,42 @@ That is, a string used to represent it on the tab bar."
      (facts 'defun)
      (against-background 'defun)
      (provided 0)))
+
+(add-hook 'nrepl-interaction-mode-hook
+          'nrepl-turn-on-eldoc-mode)
+
+;; Stop the error buffer from popping up while working in the REPL buffer:
+(setq nrepl-popup-stacktraces nil)
+
+;; Make C-c C-z switch to the *nrepl* buffer in the current window:
+(add-to-list 'same-window-buffer-names "*nrepl*")
+
+(add-hook 'nrepl-mode-hook 'paredit-mode)
+;; (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
+;; (add-hook 'nrepl-mode-hook 'rainbow-delimiters-mode)
+
+(require 'auto-complete-config)
+;; (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+(ac-config-default)
+
+(require 'ac-nrepl)
+(add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
+(add-hook 'clojure-nrepl-mode-hook 'ac-nrepl-setup)
+(eval-after-load "auto-complete"
+  '(add-to-list 'ac-modes 'nrepl-mode 'clojure-mode))
+
+(defun set-auto-complete-as-completion-at-point-function ()
+  (setq completion-at-point-functions '(auto-complete)))
+(add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
+
+(add-hook 'nrepl-mode-hook 'set-auto-complete-as-completion-at-point-function)
+(add-hook 'nrepl-interaction-mode-hook 'set-auto-complete-as-completion-at-point-function)
+
+;; doesn't work
+;; (define-key nrepl-interaction-mode-map (kbd "C-c C-d")
+;; 'ac-nrepl-popup-doc)
+
+(add-auto-mode 'clojure-mode "\\.cljs\\'")
 
 (add-hook 'html-mode-hook 'turn-off-auto-fill)
 
@@ -162,6 +218,8 @@ That is, a string used to represent it on the tab bar."
 (add-to-list 'load-path "~/.emacs.d/vendor/distel/elisp")
 (require 'distel)
 (distel-setup)
+
+(add-auto-mode 'erlang-mode "\\.app.src$" "\\.rel$")
 
 (require 'flymake)
 (defun flymake-erlang-init ()
@@ -194,9 +252,11 @@ That is, a string used to represent it on the tab bar."
 ;; === haskell
 
 (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+(add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
 
 (autoload 'ghc-init "ghc" nil t)
+;;(setq ghc-flymake-command t) ;; hlint
 (add-hook 'haskell-mode-hook (lambda () (ghc-init) (flymake-mode)))
 
 (add-to-list 'exec-path "~/.cabal/bin")
@@ -224,4 +284,6 @@ That is, a string used to represent it on the tab bar."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "Ubuntu Mono" :foundry "unknown" :slant normal :weight normal :height 113 :width normal)))))
+ '(default ((t (:family "Ubuntu Mono" :foundry "unknown" :slant normal :weight normal :height 113 :width normal))))
+ '(flymake-errline ((((class color)) (:background "Pink"))))
+ '(flymake-warnline ((((class color)) (:background "LightBlue")))))
