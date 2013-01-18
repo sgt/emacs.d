@@ -210,10 +210,13 @@ That is, a string used to represent it on the tab bar."
 
 ;; === erlang
 
-(setq erlang-root-dir "/usr/lib/erlang")
+(setq erlang-root-dir
+      (if (eq system-type 'windows-nt)
+          "C:/Program Files (x86)/erl5.9.3.1/lib"
+        "/usr/lib/erlang"))
 ;;(setq erlang-man-root-dir (concat erlang-root-dir "/man"))
 ;;(add-to-list 'exec-path (concat erlang-root-dir "/bin"))
-(add-to-list 'load-path "/usr/lib/erlang/lib/tools-2.6.8/emacs")
+(add-to-list 'load-path (concat erlang-root-dir "/tools-2.6.8/emacs"))
 (require 'erlang-start)
 (add-to-list 'load-path "~/.emacs.d/vendor/distel/elisp")
 (require 'distel)
@@ -284,6 +287,7 @@ That is, a string used to represent it on the tab bar."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "Ubuntu Mono" :foundry "unknown" :slant normal :weight normal :height 113 :width normal))))
+ (unless (eq system-type 'windows-nt)
+   '(default ((t (:family "Ubuntu Mono" :foundry "unknown" :slant normal :weight normal :height 113 :width normal)))))
  '(flymake-errline ((((class color)) (:background "Pink"))))
  '(flymake-warnline ((((class color)) (:background "LightBlue")))))
