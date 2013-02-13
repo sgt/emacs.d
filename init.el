@@ -15,8 +15,7 @@
                                   starter-kit-js starter-kit-ruby
                                   scala-mode tabbar ipython anything-ipython
                                   python-mode clojure-mode clojure-test-mode
-                                  slime nrepl
-                                  color-theme
+                                  slime nrepl qsimpleq-theme
                                   haskell-mode ghc
                                   auto-complete ac-nrepl rainbow-delimiters
                                   slamhound)
@@ -28,8 +27,8 @@
     (package-install p)))
 
 ;; my own preferences
+;;(require 'qsimpleq-theme)
 
-;(require 'solarized-light-theme)
 (menu-bar-mode)
 
 ;; Key bindings
@@ -153,6 +152,8 @@ That is, a string used to represent it on the tab bar."
 (setq make-backup-files nil)
 
 (setq require-final-newline t)
+
+(scroll-bar-mode 'right)
 
 (setq c-basic-offset 2)
 (setq tab-width 2)
@@ -288,6 +289,6 @@ That is, a string used to represent it on the tab bar."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  (unless (eq system-type 'windows-nt)
-   '(default ((t (:family "Ubuntu Mono" :foundry "unknown" :slant normal :weight normal :height 113 :width normal)))))
+   '(default ((t (:family "Ubuntu Mono" :foundry "unknown" :slant normal :weight normal :height 108 :width normal)))))
  '(flymake-errline ((((class color)) (:background "Pink"))))
  '(flymake-warnline ((((class color)) (:background "LightBlue")))))
