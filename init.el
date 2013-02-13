@@ -19,7 +19,7 @@
                                   haskell-mode ghc
                                   auto-complete ac-nrepl rainbow-delimiters
                                   slamhound)
-  
+
   "A list of packages to ensure are installed at launch.")
 
 (dolist (p my-packages)
@@ -53,7 +53,7 @@
 (setq default-buffer-file-coding-system 'utf-8)
 ;; From Emacs wiki
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
-;; MS Windows clipboard is UTF-16LE 
+;; MS Windows clipboard is UTF-16LE
 ;; (set-clipboard-coding-system 'utf-16le-dos)
 
 (setq visible-bell nil)
@@ -150,6 +150,8 @@ That is, a string used to represent it on the tab bar."
 (setq backup-inhibited t)
 (setq auto-save-default nil)
 (setq make-backup-files nil)
+
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 (setq require-final-newline t)
 
@@ -280,7 +282,7 @@ That is, a string used to represent it on the tab bar."
                         temp-file
                         (file-name-directory buffer-file-name))))
           (list "epylint" (list local-file))))
-    
+
       (add-to-list 'flymake-allowed-file-name-masks
                '("\\.py\\'" flymake-pylint-init)))
 (custom-set-faces
