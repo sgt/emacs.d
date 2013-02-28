@@ -219,7 +219,7 @@ That is, a string used to represent it on the tab bar."
         "/usr/lib/erlang"))
 ;;(setq erlang-man-root-dir (concat erlang-root-dir "/man"))
 ;;(add-to-list 'exec-path (concat erlang-root-dir "/bin"))
-(add-to-list 'load-path (concat erlang-root-dir "/lib/tools-2.6.8/emacs"))
+(add-to-list 'load-path (concat erlang-root-dir "/lib/tools-2.6.10/emacs"))
 (require 'erlang-start)
 (add-to-list 'load-path "~/.emacs.d/vendor/distel/elisp")
 (require 'distel)
