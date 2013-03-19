@@ -129,6 +129,20 @@ That is, a string used to represent it on the tab bar."
                                 (tabbar-current-tabset)))))))))
 (tabbar-mode)
 
+(defun my-tabbar-buffer-groups ()
+  "Return the list of group names the current buffer belongs to.
+This function is a custom function for tabbar-mode's tabbar-buffer-groups.
+This function group all buffers into 3 groups:
+Those Dired, those user buffer, and those emacs buffer.
+Emacs buffer are those starting with “*”."
+  (list
+   (cond
+    ((string-equal "*" (substring (buffer-name) 0 1)) "Emacs Buffer")
+    ((eq major-mode 'dired-mode) "Dired")
+    (t "User Buffer"))))
+
+(setq tabbar-buffer-groups-function 'my-tabbar-buffer-groups)
+
 (require 'scala-mode-auto)
 
 ;;----------------------------------------------------------------------------
@@ -186,22 +200,24 @@ That is, a string used to represent it on the tab bar."
 ;; (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
 ;; (add-hook 'nrepl-mode-hook 'rainbow-delimiters-mode)
 
-(require 'auto-complete-config)
-;; (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
-(ac-config-default)
+;; -- commenting out autocomplete -- i don't think i like it anymore
 
-(require 'ac-nrepl)
-(add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
-(add-hook 'clojure-nrepl-mode-hook 'ac-nrepl-setup)
-(eval-after-load "auto-complete"
-  '(add-to-list 'ac-modes 'nrepl-mode 'clojure-mode))
+;; (require 'auto-complete-config)
+;; ;; (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+;; (ac-config-default)
 
-(defun set-auto-complete-as-completion-at-point-function ()
-  (setq completion-at-point-functions '(auto-complete)))
-(add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
+;; (require 'ac-nrepl)
+;; (add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
+;; (add-hook 'clojure-nrepl-mode-hook 'ac-nrepl-setup)
+;; (eval-after-load "auto-complete"
+;;   '(add-to-list 'ac-modes 'nrepl-mode 'clojure-mode))
 
-(add-hook 'nrepl-mode-hook 'set-auto-complete-as-completion-at-point-function)
-(add-hook 'nrepl-interaction-mode-hook 'set-auto-complete-as-completion-at-point-function)
+;; (defun set-auto-complete-as-completion-at-point-function ()
+;;   (setq completion-at-point-functions '(auto-complete)))
+;; (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
+
+;; (add-hook 'nrepl-mode-hook 'set-auto-complete-as-completion-at-point-function)
+;; (add-hook 'nrepl-interaction-mode-hook 'set-auto-complete-as-completion-at-point-function)
 
 ;; doesn't work
 ;; (define-key nrepl-interaction-mode-map (kbd "C-c C-d")
