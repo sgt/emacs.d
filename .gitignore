@@ -8,3 +8,4 @@ url
 var
 tramp
 server
+nrepl-history
