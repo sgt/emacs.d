@@ -231,7 +231,7 @@ Emacs buffer are those starting with “*”."
 
 (setq erlang-root-dir
       (if (eq system-type 'windows-nt)
-          "C:/Program Files (x86)/erl5.9.3.1"
+          "C:/Program Files/erl5.10.1"
         "/usr/lib/erlang"))
 ;;(setq erlang-man-root-dir (concat erlang-root-dir "/man"))
 ;;(add-to-list 'exec-path (concat erlang-root-dir "/bin"))
@@ -306,7 +306,8 @@ Emacs buffer are those starting with “*”."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- (unless (eq system-type 'windows-nt)
-   '(default ((t (:family "Ubuntu Mono" :foundry "unknown" :slant normal :weight normal :height 108 :width normal)))))
+ (if (eq system-type 'windows-nt)
+     '(default ((t (:family "Consolas" :foundry "unknown" :slant normal :weight normal :height 98 :width normal))))
+     '(default ((t (:family "Ubuntu Mono" :foundry "unknown" :slant normal :weight normal :height 108 :width normal)))))
  '(flymake-errline ((((class color)) (:background "Pink"))))
  '(flymake-warnline ((((class color)) (:background "LightBlue")))))
