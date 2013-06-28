@@ -5,6 +5,8 @@
 (require 'package)
 (add-to-list 'package-archives
              '("marmalade" . "http://marmalade-repo.org/packages/") t)
+;; (add-to-list 'package-archives
+;;              '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (package-initialize)
 
 (when (not package-archive-contents)
@@ -18,7 +20,7 @@
                                   slime nrepl qsimpleq-theme
                                   haskell-mode ghc
                                   auto-complete ac-nrepl rainbow-delimiters
-                                  slamhound)
+                                  slamhound nrepl-ritz)
 
   "A list of packages to ensure are installed at launch.")
 
@@ -190,15 +192,30 @@ Emacs buffer are those starting with “*”."
 (add-hook 'nrepl-interaction-mode-hook
           'nrepl-turn-on-eldoc-mode)
 
-;; Stop the error buffer from popping up while working in the REPL buffer:
-(setq nrepl-popup-stacktraces nil)
+;; Configure nrepl.el
+(setq nrepl-hide-special-buffers t)
+(setq nrepl-popup-stacktraces-in-repl nil)
+(setq nrepl-history-file "~/.emacs.d/nrepl-history")
+
+;; Some default eldoc facilities
+(add-hook 'nrepl-connected-hook
+          (defun pnh-clojure-mode-eldoc-hook ()
+            (add-hook 'clojure-mode-hook 'turn-on-eldoc-mode)
+            (add-hook 'nrepl-interaction-mode-hook 'nrepl-turn-on-eldoc-mode)
+            (nrepl-enable-on-existing-clojure-buffers)))
+
+;; Repl mode hook
+(add-hook 'nrepl-mode-hook 'subword-mode)
 
 ;; Make C-c C-z switch to the *nrepl* buffer in the current window:
 (add-to-list 'same-window-buffer-names "*nrepl*")
 
 (add-hook 'nrepl-mode-hook 'paredit-mode)
-;; (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
-;; (add-hook 'nrepl-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'nrepl-mode-hook 'rainbow-delimiters-mode)
+
+(require 'paredit)
+(define-key paredit-mode-map (kbd "M-(") 'paredit-wrap-round)
 
 ;; -- commenting out autocomplete -- i don't think i like it anymore
 
@@ -206,11 +223,10 @@ Emacs buffer are those starting with “*”."
 ;; ;; (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
 ;; (ac-config-default)
 
-;; (require 'ac-nrepl)
-;; (add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
-;; (add-hook 'clojure-nrepl-mode-hook 'ac-nrepl-setup)
-;; (eval-after-load "auto-complete"
-;;   '(add-to-list 'ac-modes 'nrepl-mode 'clojure-mode))
+(require 'ac-nrepl)
+(eval-after-load "auto-complete"
+  '(add-to-list 'ac-modes 'nrepl-mode 'clojure-mode))
+(add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
 
 ;; (defun set-auto-complete-as-completion-at-point-function ()
 ;;   (setq completion-at-point-functions '(auto-complete)))
@@ -223,9 +239,14 @@ Emacs buffer are those starting with “*”."
 ;; (define-key nrepl-interaction-mode-map (kbd "C-c C-d")
 ;; 'ac-nrepl-popup-doc)
 
+;;(add-auto-mode 'gfm-mode "\\.md\\'")
 (add-auto-mode 'clojure-mode "\\.cljs\\'")
 
+(add-hook 'gfm-mode-hook 'turn-off-auto-fill)
 (add-hook 'html-mode-hook 'turn-off-auto-fill)
+
+;; === javascript
+(add-auto-mode 'js2-mode "\\.js\\'")
 
 ;; === erlang
 
@@ -255,7 +276,7 @@ Emacs buffer are those starting with “*”."
 
 (defun my-erlang-mode-hook ()
   ;; when starting an Erlang shell in Emacs, default in the node name
-  (setq inferior-erlang-machine-options '("-sname" "emacs"))
+  (setq inferior-erlang-machine-options '("-sname" "emacs" "-pz" "deps/*/ebin"))
   ;; add Erlang functions to an imenu menu
   (imenu-add-to-menubar "imenu")
   ;; customize keys
@@ -270,6 +291,11 @@ Emacs buffer are those starting with “*”."
 
 (setq browse-url-browser-function 'browse-url-generic
       browse-url-generic-program "google-chrome")
+
+;; === go
+
+(eval-after-load "go-mode"
+  '(require 'flymake-go))
 
 ;; === haskell
 
@@ -307,6 +333,6 @@ Emacs buffer are those starting with “*”."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  (unless (eq system-type 'windows-nt)
-   '(default ((t (:family "Ubuntu Mono" :foundry "unknown" :slant normal :weight normal :height 108 :width normal)))))
+   '(default ((t (:family "Droid Sans Mono" :slant normal :weight normal :height 92 :width normal)))))
  '(flymake-errline ((((class color)) (:background "Pink"))))
  '(flymake-warnline ((((class color)) (:background "LightBlue")))))
