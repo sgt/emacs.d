@@ -163,6 +163,8 @@ Emacs buffer are those starting with “*”."
 ;;(require 'rhtml-mode)
 ;;(add-to-list 'auto-mode-alist '("\\.rhtml$" . rhtml-mode))
 
+(setq visible-bell t)
+
 (setq backup-inhibited t)
 (setq auto-save-default nil)
 (setq make-backup-files nil)
