@@ -20,7 +20,8 @@
                                   slime nrepl qsimpleq-theme
                                   haskell-mode ghc
                                   auto-complete ac-nrepl rainbow-delimiters
-                                  slamhound nrepl-ritz)
+                                  slamhound nrepl-ritz js2-mode markdown-mode
+                                  rust-mode flycheck wc-mode)
 
   "A list of packages to ensure are installed at launch.")
 
@@ -28,8 +29,17 @@
   (when (not (package-installed-p p))
     (package-install p)))
 
+;; visual line mode
+(setq line-move-visual nil)
+(add-hook 'text-mode-hook 'turn-on-visual-line-mode)
+(remove-hook 'text-mode-hook 'turn-on-auto-fill)
+(remove-hook 'text-mode-hook 'turn-on-flyspell)
+
 ;; my own preferences
 ;;(require 'qsimpleq-theme)
+
+;; flycheck
+(add-hook 'after-init-hook #'global-flycheck-mode)
 
 (menu-bar-mode)
 
@@ -107,7 +117,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector ["black" "#d55e00" "#009e73" "#f8ec59" "#0072b2" "#cc79a7" "#56b4e9" "white"])
  '(blink-cursor-mode nil)
+ '(custom-enabled-themes (quote (qsimpleq)))
+ '(custom-safe-themes (quote ("085b401decc10018d8ed2572f65c5ba96864486062c0a2391372223294f89460" default)))
  '(org-agenda-files (quote ("~/Dropbox/notes/comics.org")))
  '(show-paren-mode t)
  '(tabbar-separator (quote (0.5)))
@@ -156,6 +169,40 @@ Emacs buffer are those starting with “*”."
   (dolist (pattern patterns)
     (add-to-list 'auto-mode-alist (cons pattern mode))))
 
+(add-auto-mode 'octave-mode "\\.m\\'")
+
+;; writing modes
+(require 'wc-mode)
+(add-auto-mode 'markdown-mode "\\.md\\'")
+(add-hook 'text-mode-hook (lambda ()
+                            (variable-pitch-mode t)
+                            (setq line-spacing 10)
+                            (wc-mode t)))
+
+(defun toggle-fullscreen ()
+  "Toggle full screen on X11"
+  (interactive)
+  (when (eq window-system 'x)
+    (if (eq (frame-parameter nil 'fullscreen) nil)
+        (progn
+          (set-frame-parameter nil 'fullscreen 'fullboth)
+          (menu-bar-mode -1)
+          (tabbar-mode -1)
+          (scroll-bar-mode -1)
+          (set-fringe-mode 400))
+      (progn
+        (menu-bar-mode 1)
+        (tabbar-mode 1)
+        (scroll-bar-mode 1)
+        (set-frame-parameter nil 'fullscreen nil)
+        (set-fringe-mode nil)))))
+
+(global-set-key [f11] 'toggle-fullscreen)
+
+;; if (eq system-type 'windows-nt)
+(set-face-attribute 'default nil :font "Consolas" :height 98)
+(set-face-attribute 'variable-pitch nil :font "Georgia" :height 118)
+
 ;;(load (concat dotfiles-dir "vendor/jinja2-mode/jinja2-mode.el"))
 ;;(require 'jinja2-mode)
 
@@ -189,7 +236,8 @@ Emacs buffer are those starting with “*”."
      (fact 'defun)
      (facts 'defun)
      (against-background 'defun)
-     (provided 0)))
+     (provided 0)
+     (db-testing 'defun)))
 
 (add-hook 'nrepl-interaction-mode-hook
           'nrepl-turn-on-eldoc-mode)
@@ -244,9 +292,6 @@ Emacs buffer are those starting with “*”."
 ;;(add-auto-mode 'gfm-mode "\\.md\\'")
 (add-auto-mode 'clojure-mode "\\.cljs\\'")
 
-(add-hook 'gfm-mode-hook 'turn-off-auto-fill)
-(add-hook 'html-mode-hook 'turn-off-auto-fill)
-
 ;; === javascript
 (add-auto-mode 'js2-mode "\\.js\\'")
 
@@ -258,7 +303,7 @@ Emacs buffer are those starting with “*”."
         "/usr/lib/erlang"))
 ;;(setq erlang-man-root-dir (concat erlang-root-dir "/man"))
 ;;(add-to-list 'exec-path (concat erlang-root-dir "/bin"))
-(add-to-list 'load-path (concat erlang-root-dir "/lib/tools-2.6.10/emacs"))
+(add-to-list 'load-path (concat erlang-root-dir "/lib/tools-2.6.11/emacs"))
 (require 'erlang-start)
 (add-to-list 'load-path "~/.emacs.d/vendor/distel/elisp")
 (require 'distel)
@@ -266,25 +311,13 @@ Emacs buffer are those starting with “*”."
 
 (add-auto-mode 'erlang-mode "\\.app.src$" "\\.rel$")
 
-(require 'flymake)
-(defun flymake-erlang-init ()
-  (let* ((temp-file (flymake-init-create-temp-buffer-copy
-		     'flymake-create-temp-inplace))
-	 (local-file (file-relative-name temp-file
-		(file-name-directory buffer-file-name))))
-    (list "~/.emacs.d/erlang_flymake" (list local-file))))
-
-(add-to-list 'flymake-allowed-file-name-masks '("\\.erl\\'" flymake-erlang-init))
-
 (defun my-erlang-mode-hook ()
   ;; when starting an Erlang shell in Emacs, default in the node name
   (setq inferior-erlang-machine-options '("-sname" "emacs" "-pz" "deps/*/ebin"))
   ;; add Erlang functions to an imenu menu
   (imenu-add-to-menubar "imenu")
   ;; customize keys
-  (local-set-key [return] 'newline-and-indent)
-
-  (flymake-mode 1))
+  (local-set-key [return] 'newline-and-indent))
 
 (add-hook 'erlang-mode-hook 'my-erlang-mode-hook)
 
@@ -294,11 +327,6 @@ Emacs buffer are those starting with “*”."
 (setq browse-url-browser-function 'browse-url-generic
       browse-url-generic-program "google-chrome")
 
-;; === go
-
-(eval-after-load "go-mode"
-  '(require 'flymake-go))
-
 ;; === haskell
 
 (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
@@ -306,8 +334,6 @@ Emacs buffer are those starting with “*”."
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
 
 (autoload 'ghc-init "ghc" nil t)
-;;(setq ghc-flymake-command t) ;; hlint
-(add-hook 'haskell-mode-hook (lambda () (ghc-init) (flymake-mode)))
 
 (add-to-list 'exec-path "~/.cabal/bin")
 
@@ -315,27 +341,11 @@ Emacs buffer are those starting with “*”."
   (require 'server)
   (server-start))
 
-;; === python
-(add-hook 'python-mode-hook (lambda () (flymake-mode)))
 
-(when (load "flymake" t)
-      (defun flymake-pylint-init ()
-        (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                           'flymake-create-temp-inplace))
-           (local-file (file-relative-name
-                        temp-file
-                        (file-name-directory buffer-file-name))))
-          (list "epylint" (list local-file))))
-
-      (add-to-list 'flymake-allowed-file-name-masks
-               '("\\.py\\'" flymake-pylint-init)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- (if (eq system-type 'windows-nt)
-     '(default ((t (:family "Consolas" :foundry "outline" :slant normal :weight normal :height 98 :width normal))))
-     '(default ((t (:family "Ubuntu Mono" :foundry "unknown" :slant normal :weight normal :height 108 :width normal)))))
  '(flymake-errline ((((class color)) (:background "Pink"))))
  '(flymake-warnline ((((class color)) (:background "LightBlue")))))
