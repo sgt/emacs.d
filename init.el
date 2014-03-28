@@ -4,9 +4,9 @@
 ;; packages and starter kit
 (require 'package)
 (add-to-list 'package-archives
-             '("marmalade" . "http://marmalade-repo.org/packages/") t)
-;; (add-to-list 'package-archives
-;;              '("melpa" . "http://melpa.milkbox.net/packages/") t)
+             '("marmalade" . "http://marmalade-repo.org/packages/"))
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.milkbox.net/packages/"))
 (package-initialize)
 
 (when (not package-archive-contents)
@@ -16,12 +16,13 @@
 (defvar my-packages '(starter-kit starter-kit-lisp starter-kit-bindings
                                   starter-kit-js starter-kit-ruby
                                   scala-mode tabbar ipython anything-ipython
-                                  python-mode clojure-mode clojure-test-mode
+                                  python-mode clojure-mode
                                   slime nrepl qsimpleq-theme
                                   haskell-mode ghc
-                                  auto-complete ac-nrepl rainbow-delimiters
-                                  slamhound nrepl-ritz js2-mode markdown-mode
-                                  rust-mode flycheck wc-mode)
+                                  auto-complete rainbow-delimiters
+                                  slamhound js2-mode markdown-mode
+                                  rust-mode flycheck wc-mode cider ac-nrepl
+                                  multi-web-mode)
 
   "A list of packages to ensure are installed at launch.")
 
@@ -62,7 +63,7 @@
 (set-terminal-coding-system 'utf-8)
 (set-keyboard-coding-system 'utf-8)
 ;; This from a japanese individual.  I hope it works.
-(setq default-buffer-file-coding-system 'utf-8)
+(setq buffer-file-coding-system 'utf-8)
 ;; From Emacs wiki
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 ;; MS Windows clipboard is UTF-16LE
@@ -121,6 +122,7 @@
  '(blink-cursor-mode nil)
  '(custom-enabled-themes (quote (qsimpleq)))
  '(custom-safe-themes (quote ("085b401decc10018d8ed2572f65c5ba96864486062c0a2391372223294f89460" default)))
+ '(default-input-method "russian-computer")
  '(org-agenda-files (quote ("~/Dropbox/notes/comics.org")))
  '(show-paren-mode t)
  '(tabbar-separator (quote (0.5)))
@@ -174,10 +176,19 @@ Emacs buffer are those starting with “*”."
 ;; writing modes
 (require 'wc-mode)
 (add-auto-mode 'markdown-mode "\\.md\\'")
-(add-hook 'text-mode-hook (lambda ()
-                            (variable-pitch-mode t)
-                            (setq line-spacing 10)
-                            (wc-mode t)))
+;; (add-hook 'text-mode-hook (lambda ()
+;;                             (variable-pitch-mode t)
+;;                             (setq line-spacing 4)
+;;                             (wc-mode t)))
+
+(require 'multi-web-mode)
+(setq mweb-default-major-mode 'html-mode)
+(setq mweb-tags
+      '((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
+        (js-mode  "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" "</script>")
+        (css-mode "<style +type=\"text/css\"[^>]*>" "</style>")))
+(setq mweb-filename-extensions '("php" "htm" "html" "ctp" "phtml" "php4" "php5"))
+(multi-web-global-mode 1)
 
 (defun toggle-fullscreen ()
   "Toggle full screen on X11"
@@ -222,11 +233,11 @@ Emacs buffer are those starting with “*”."
 
 (scroll-bar-mode 'right)
 
-(setq c-basic-offset 2)
+(setq-default c-basic-offset 2)
 (setq tab-width 2)
 
 (set-language-environment "UTF-8")
-(setq slime-net-coding-system 'utf-8-unix)
+(setq-default slime-net-coding-system 'utf-8-unix)
 
 ;; === clojure
 
@@ -239,30 +250,26 @@ Emacs buffer are those starting with “*”."
      (provided 0)
      (db-testing 'defun)))
 
-(add-hook 'nrepl-interaction-mode-hook
-          'nrepl-turn-on-eldoc-mode)
 
-;; Configure nrepl.el
+;; Configure cider.el
+(require 'cider)
+(add-hook 'cider-mode-hook
+          'cider-turn-on-eldoc-mode)
 (setq nrepl-hide-special-buffers t)
-(setq nrepl-popup-stacktraces-in-repl nil)
-(setq nrepl-history-file "~/.emacs.d/nrepl-history")
-
-;; Some default eldoc facilities
-(add-hook 'nrepl-connected-hook
-          (defun pnh-clojure-mode-eldoc-hook ()
-            (add-hook 'clojure-mode-hook 'turn-on-eldoc-mode)
-            (add-hook 'nrepl-interaction-mode-hook 'nrepl-turn-on-eldoc-mode)
-            (nrepl-enable-on-existing-clojure-buffers)))
+(setq cider-popup-stacktraces-in-repl nil)
+(setq cider-repl-history-file "~/.emacs.d/nrepl-history")
 
 ;; Repl mode hook
-(add-hook 'nrepl-mode-hook 'subword-mode)
+(add-hook 'cider-repl-mode-hook 'subword-mode)
 
 ;; Make C-c C-z switch to the *nrepl* buffer in the current window:
 (add-to-list 'same-window-buffer-names "*nrepl*")
 
-(add-hook 'nrepl-mode-hook 'paredit-mode)
+(add-hook 'cider-repl-mode-hook 'paredit-mode)
+(add-hook 'cider-mode-hook 'paredit-mode)
+
 (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
-(add-hook 'nrepl-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'cider-repl-mode-hook 'rainbow-delimiters-mode)
 
 (require 'paredit)
 (define-key paredit-mode-map (kbd "M-(") 'paredit-wrap-round)
@@ -275,8 +282,9 @@ Emacs buffer are those starting with “*”."
 
 (require 'ac-nrepl)
 (eval-after-load "auto-complete"
-  '(add-to-list 'ac-modes 'nrepl-mode 'clojure-mode))
-(add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
+  '(add-to-list 'ac-modes 'cider-repl-mode 'clojure-mode))
+(add-hook 'cider-repl-mode-hook 'ac-nrepl-setup)
+(add-hook 'cider-mode-hook 'ac-nrepl-setup)
 
 ;; (defun set-auto-complete-as-completion-at-point-function ()
 ;;   (setq completion-at-point-functions '(auto-complete)))
@@ -297,13 +305,13 @@ Emacs buffer are those starting with “*”."
 
 ;; === erlang
 
-(setq erlang-root-dir
-      (if (eq system-type 'windows-nt)
-          "C:/Program Files/erl5.10.1"
-        "/usr/lib/erlang"))
+(defvar erlang-root-dir
+  (if (eq system-type 'windows-nt)
+      "C:/Program Files/erl5.10.1"
+    "/usr/lib/erlang"))
 ;;(setq erlang-man-root-dir (concat erlang-root-dir "/man"))
 ;;(add-to-list 'exec-path (concat erlang-root-dir "/bin"))
-(add-to-list 'load-path (concat erlang-root-dir "/lib/tools-2.6.11/emacs"))
+(add-to-list 'load-path (concat erlang-root-dir "/lib/tools-2.6.12/emacs"))
 (require 'erlang-start)
 (add-to-list 'load-path "~/.emacs.d/vendor/distel/elisp")
 (require 'distel)
@@ -337,6 +345,25 @@ Emacs buffer are those starting with “*”."
 
 (add-to-list 'exec-path "~/.cabal/bin")
 
+;; === ocaml
+
+;; Setup environment variables using opam
+(dolist (var (car (read-from-string (shell-command-to-string "opam config env --sexp"))))
+  (setenv (car var) (cadr var)))
+
+;; Update the emacs path
+(setq exec-path (split-string (getenv "PATH") path-separator))
+
+;; Update the emacs load path
+(push (concat (getenv "OCAML_TOPLEVEL_PATH") "/../../share/emacs/site-lisp") load-path)
+
+;; Automatically load utop.el
+(autoload 'utop "utop" "Toplevel for OCaml" t)
+
+(autoload 'utop-setup-ocaml-buffer "utop" "Toplevel for OCaml" t)
+(add-hook 'tuareg-mode-hook 'utop-setup-ocaml-buffer)
+(add-hook 'typerex-mode-hook 'utop-setup-ocaml-buffer)
+
 (unless (string-equal "root" (getenv "USER"))
   (require 'server)
   (server-start))
@@ -347,5 +374,5 @@ Emacs buffer are those starting with “*”."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(flymake-errline ((((class color)) (:background "Pink"))))
- '(flymake-warnline ((((class color)) (:background "LightBlue")))))
+ '(flymake-errline ((((class color)) (:background "Pink"))) t)
+ '(flymake-warnline ((((class color)) (:background "LightBlue"))) t))
