@@ -76,7 +76,7 @@
 
 ;; additional extensions for speedbar to show
 (require 'speedbar)
-(dolist (element '(".rb" ".rhtml" ".ru" ".clj" ".pom" ".css"))
+(dolist (element '(".rb" ".rhtml" ".ru" ".clj" ".pom" ".css" ".hs"))
   (speedbar-add-supported-extension element))
 
 ;; tabs on the top
@@ -311,7 +311,7 @@ Emacs buffer are those starting with “*”."
     "/usr/lib/erlang"))
 ;;(setq erlang-man-root-dir (concat erlang-root-dir "/man"))
 ;;(add-to-list 'exec-path (concat erlang-root-dir "/bin"))
-(add-to-list 'load-path (concat erlang-root-dir "/lib/tools-2.6.12/emacs"))
+(add-to-list 'load-path (concat erlang-root-dir "/lib/tools-2.6.14/emacs"))
 (require 'erlang-start)
 (add-to-list 'load-path "~/.emacs.d/vendor/distel/elisp")
 (require 'distel)
@@ -321,7 +321,7 @@ Emacs buffer are those starting with “*”."
 
 (defun my-erlang-mode-hook ()
   ;; when starting an Erlang shell in Emacs, default in the node name
-  (setq inferior-erlang-machine-options '("-sname" "emacs" "-pz" "deps/*/ebin"))
+  (setq inferior-erlang-machine-options '("-sname" "emacs" "-pa" "../deps/*/ebin"))
   ;; add Erlang functions to an imenu menu
   (imenu-add-to-menubar "imenu")
   ;; customize keys
@@ -339,11 +339,21 @@ Emacs buffer are those starting with “*”."
 
 (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
-(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+;;(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+(add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
+;;(add-hook 'haskell-mode-hook 'turn-on-haskell-simple-indent)
+(add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+
+(custom-set-variables
+  '(haskell-process-suggest-remove-import-lines t)
+  '(haskell-process-auto-import-loaded-modules t)
+  '(haskell-process-log t))
 
 (autoload 'ghc-init "ghc" nil t)
 
 (add-to-list 'exec-path "~/.cabal/bin")
+
+(setq haskell-stylish-on-save t)
 
 ;; === ocaml
 
