@@ -6,7 +6,7 @@
 (add-to-list 'package-archives
              '("marmalade" . "http://marmalade-repo.org/packages/"))
 (add-to-list 'package-archives
-             '("melpa" . "http://melpa.milkbox.net/packages/"))
+              '("melpa" . "http://stable.melpa.org/packages/"))
 (package-initialize)
 
 (when (not package-archive-contents)
@@ -15,14 +15,14 @@
 ;; Add in your own as you wish:
 (defvar my-packages '(starter-kit starter-kit-lisp starter-kit-bindings
                                   starter-kit-js starter-kit-ruby
-                                  scala-mode tabbar ipython anything-ipython
+                                  scala-mode ipython
                                   python-mode clojure-mode
-                                  slime nrepl qsimpleq-theme
+                                  slime qsimpleq-theme
                                   haskell-mode ghc
                                   auto-complete rainbow-delimiters
                                   slamhound js2-mode markdown-mode
                                   rust-mode flycheck wc-mode cider ac-nrepl
-                                  multi-web-mode)
+                                  multi-web-mode flycheck-hdevtools)
 
   "A list of packages to ensure are installed at launch.")
 
@@ -79,38 +79,6 @@
 (dolist (element '(".rb" ".rhtml" ".ru" ".clj" ".pom" ".css" ".hs"))
   (speedbar-add-supported-extension element))
 
-;; tabs on the top
-(require 'tabbar)
-;; Tabbar settings
-(set-face-attribute
- 'tabbar-default nil
- :background "gray20"
- :foreground "gray20"
- :box '(:line-width 1 :color "gray20" :style nil))
-(set-face-attribute
- 'tabbar-unselected nil
- :background "gray30"
- :foreground "white"
- :box '(:line-width 5 :color "gray30" :style nil))
-(set-face-attribute
- 'tabbar-selected nil
- :background "gray75"
- :foreground "black"
- :box '(:line-width 5 :color "gray75" :style nil))
-(set-face-attribute
- 'tabbar-highlight nil
- :background "white"
- :foreground "black"
- :underline nil
- :box '(:line-width 5 :color "white" :style nil))
-(set-face-attribute
- 'tabbar-button nil
- :box '(:line-width 1 :color "gray20" :style nil))
-(set-face-attribute
- 'tabbar-separator nil
- :background "gray20"
- :height 0.6)
-
 ;; Change padding of the tabs
 ;; we also need to set separator to avoid overlapping tabs by highlighted tabs
 (custom-set-variables
@@ -125,40 +93,8 @@
  '(default-input-method "russian-computer")
  '(org-agenda-files (quote ("~/Dropbox/notes/comics.org")))
  '(show-paren-mode t)
- '(tabbar-separator (quote (0.5)))
  '(tool-bar-mode nil)
  '(virtualenv-root "~/tmp/virtualenv/"))
-;; adding spaces
-(defun tabbar-buffer-tab-label (tab)
-  "Return a label for TAB.
-That is, a string used to represent it on the tab bar."
-  (let ((label  (if tabbar--buffer-show-groups
-                    (format "[%s]  " (tabbar-tab-tabset tab))
-                  (format "%s  " (tabbar-tab-value tab)))))
-    ;; Unless the tab bar auto scrolls to keep the selected tab
-    ;; visible, shorten the tab label to keep as many tabs as possible
-    ;; in the visible area of the tab bar.
-    (if tabbar-auto-scroll-flag
-        label
-      (tabbar-shorten
-       label (max 1 (/ (window-width)
-                       (length (tabbar-view
-                                (tabbar-current-tabset)))))))))
-(tabbar-mode)
-
-(defun my-tabbar-buffer-groups ()
-  "Return the list of group names the current buffer belongs to.
-This function is a custom function for tabbar-mode's tabbar-buffer-groups.
-This function group all buffers into 3 groups:
-Those Dired, those user buffer, and those emacs buffer.
-Emacs buffer are those starting with “*”."
-  (list
-   (cond
-    ((string-equal "*" (substring (buffer-name) 0 1)) "Emacs Buffer")
-    ((eq major-mode 'dired-mode) "Dired")
-    (t "User Buffer"))))
-
-(setq tabbar-buffer-groups-function 'my-tabbar-buffer-groups)
 
 (require 'scala-mode-auto)
 
@@ -198,7 +134,6 @@ Emacs buffer are those starting with “*”."
         (progn
           (set-frame-parameter nil 'fullscreen 'fullboth)
           (menu-bar-mode -1)
-          (tabbar-mode -1)
           (scroll-bar-mode -1)
           (set-fringe-mode 400))
       (progn
@@ -303,6 +238,9 @@ Emacs buffer are those starting with “*”."
 ;; === javascript
 (add-auto-mode 'js2-mode "\\.js\\'")
 
+;; === coffeescript
+(custom-set-variables '(coffee-tab-width 2))
+
 ;; === erlang
 
 (defvar erlang-root-dir
@@ -335,7 +273,12 @@ Emacs buffer are those starting with “*”."
 (setq browse-url-browser-function 'browse-url-generic
       browse-url-generic-program "google-chrome")
 
-;; === haskell
+;; === Haskell
+(let ((my-cabal-path (expand-file-name "~/.cabal/bin")))
+  (setenv "PATH" (concat my-cabal-path ":" (getenv "PATH")))
+  (add-to-list 'exec-path my-cabal-path))
+
+(setq haskell-process-path-cabal (expand-file-name "~/.cabal/bin/cabal"))
 
 (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
@@ -347,11 +290,12 @@ Emacs buffer are those starting with “*”."
 (custom-set-variables
   '(haskell-process-suggest-remove-import-lines t)
   '(haskell-process-auto-import-loaded-modules t)
-  '(haskell-process-log t))
+  '(haskell-process-log t)
+  '(haskell-process-type 'cabal-repl))
 
 (autoload 'ghc-init "ghc" nil t)
-
-(add-to-list 'exec-path "~/.cabal/bin")
+(autoload 'ghc-debug "ghc" nil t)
+(add-hook 'haskell-mode-hook (lambda () (ghc-init)))
 
 (setq haskell-stylish-on-save t)
 
